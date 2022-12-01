@@ -2,14 +2,10 @@
 
 namespace Drupal\graphql\EventSubscriber;
 
-use Drupal\Component\Serialization\Json;
 use Drupal\Core\Cache\CacheBackendInterface;
-use Drupal\Core\PageCache\ResponsePolicy\KillSwitch;
 use Drupal\graphql\Event\OperationEvent;
 use GraphQL\Error\Error;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpKernel\Event\ResponseEvent;
-use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
  * Save persisted queries to cache.
@@ -24,23 +20,13 @@ class ApqSubscriber implements EventSubscriberInterface {
   protected $cache;
 
   /**
-   * Page cache kill switch.
-   *
-   * @var \Drupal\Core\PageCache\ResponsePolicy\KillSwitch
-   */
-  private KillSwitch $cacheKillSwitch;
-
-  /**
    * Constructs a ApqSubscriber object.
    *
    * @param \Drupal\Core\Cache\CacheBackendInterface $cache
    *   The cache to store persisted queries.
-   * @param \Drupal\Core\PageCache\ResponsePolicy\KillSwitch $cacheKillSwitch
-   *   Page cache kill switch.
    */
-  public function __construct(CacheBackendInterface $cache, KillSwitch $cacheKillSwitch) {
+  public function __construct(CacheBackendInterface $cache) {
     $this->cache = $cache;
-    $this->cacheKillSwitch = $cacheKillSwitch;
   }
 
   /**
@@ -63,27 +49,9 @@ class ApqSubscriber implements EventSubscriberInterface {
       if ($queryHash !== $computedQueryHash) {
         throw new Error('Provided sha does not match query');
       }
+      // Add cache context for dynamic page cache compatibility.
       $event->getContext()->addCacheContexts(['url.query_args:variables']);
       $this->cache->set($queryHash, $query);
-    }
-  }
-
-  /**
-   * Add cache-tag to PersistedQueryNotFound responses.
-   *
-   * @param \Symfony\Component\HttpKernel\Event\ResponseEvent $event
-   *   The event to process.
-   */
-  public function onResponse(ResponseEvent $event) {
-    $body = Json::decode($event->getResponse()->getContent());
-    if (empty($body['errors'])) {
-      return;
-    }
-    foreach ($body['errors'] as $error) {
-      if (isset($error['message']) && $error['message'] === 'PersistedQueryNotFound') {
-        $this->cacheKillSwitch->trigger();
-        return;
-      }
     }
   }
 
@@ -92,8 +60,7 @@ class ApqSubscriber implements EventSubscriberInterface {
    */
   public static function getSubscribedEvents() {
     return [
-      OperationEvent::GRAPHQL_OPERATION_BEFORE => 'onBeforeOperation',
-      KernelEvents::RESPONSE => ['onResponse', 101],
+      OperationEvent::GRAPHQL_OPERATION_BEFORE => 'onBeforeOperation'
     ];
   }
 
