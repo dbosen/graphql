@@ -4,8 +4,8 @@ namespace Drupal\graphql\EventSubscriber;
 
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\graphql\Event\OperationEvent;
-use GraphQL\Error\Error;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use GraphQL\Error\Error;
 
 /**
  * Save persisted queries to cache.
@@ -60,7 +60,7 @@ class ApqSubscriber implements EventSubscriberInterface {
    */
   public static function getSubscribedEvents() {
     return [
-      OperationEvent::GRAPHQL_OPERATION_BEFORE => 'onBeforeOperation'
+      OperationEvent::GRAPHQL_OPERATION_BEFORE => 'onBeforeOperation',
     ];
   }
 

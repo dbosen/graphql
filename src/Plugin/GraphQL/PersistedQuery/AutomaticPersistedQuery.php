@@ -33,16 +33,16 @@ class AutomaticPersistedQuery extends PersistedQueryPluginBase implements Contai
    *
    * @var \Drupal\Core\PageCache\ResponsePolicy\KillSwitch
    */
-  private KillSwitch $cacheKillSwitch;
+  protected KillSwitch $pageCacheKillSwitch;
 
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, CacheBackendInterface $cache, KillSwitch $cacheKillSwitch) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, CacheBackendInterface $cache, KillSwitch $pageCacheKillSwitch) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     $this->cache = $cache;
-    $this->cacheKillSwitch = $cacheKillSwitch;
+    $this->pageCacheKillSwitch = $pageCacheKillSwitch;
   }
 
   /**
@@ -65,7 +65,7 @@ class AutomaticPersistedQuery extends PersistedQueryPluginBase implements Contai
     if ($query = $this->cache->get($id)) {
       return $query->data;
     }
-    $this->cacheKillSwitch->trigger();
+    $this->pageCacheKillSwitch->trigger();
     throw new RequestError('PersistedQueryNotFound');
   }
 
