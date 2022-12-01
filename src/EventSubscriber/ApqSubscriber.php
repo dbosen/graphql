@@ -55,7 +55,7 @@ class ApqSubscriber implements EventSubscriberInterface {
       if ($queryHash !== $computedQueryHash) {
         throw new Error('Provided sha does not match query');
       }
-
+      $event->getContext()->addCacheContexts(['url.query_args:variables']);
       Cache::invalidateTags([$this->getCacheTag($queryHash)]);
       $this->cache->set($queryHash, $query);
     }
@@ -67,7 +67,7 @@ class ApqSubscriber implements EventSubscriberInterface {
    * @param \Symfony\Component\HttpKernel\Event\ResponseEvent $event
    *   The event to process.
    */
-  public function onRespond(ResponseEvent $event) {
+  public function onResponse(ResponseEvent $event) {
     if (!$this->isPersistedQueryNotFoundRespond($event->getResponse())) {
       return;
     }
@@ -89,7 +89,7 @@ class ApqSubscriber implements EventSubscriberInterface {
   public static function getSubscribedEvents() {
     return [
       OperationEvent::GRAPHQL_OPERATION_BEFORE => 'onBeforeOperation',
-      KernelEvents::RESPONSE => 'onRespond',
+      KernelEvents::RESPONSE => ['onResponse', 101],
     ];
   }
 
