@@ -3,7 +3,6 @@
 namespace Drupal\graphql\Plugin\GraphQL\PersistedQuery;
 
 use Drupal\Core\Cache\CacheBackendInterface;
-use Drupal\Core\PageCache\ResponsePolicy\KillSwitch;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\graphql\PersistedQuery\PersistedQueryPluginBase;
 use GraphQL\Server\OperationParams;
@@ -29,33 +28,19 @@ class AutomaticPersistedQuery extends PersistedQueryPluginBase implements Contai
   protected $cache;
 
   /**
-   * Page cache kill switch.
-   *
-   * @var \Drupal\Core\PageCache\ResponsePolicy\KillSwitch
-   */
-  protected $pageCacheKillSwitch;
-
-  /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, CacheBackendInterface $cache, KillSwitch $pageCacheKillSwitch) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, CacheBackendInterface $cache) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     $this->cache = $cache;
-    $this->pageCacheKillSwitch = $pageCacheKillSwitch;
   }
 
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-      $container->get('cache.graphql.apq'),
-      $container->get('page_cache_kill_switch')
-    );
+    return new static($configuration, $plugin_id, $plugin_definition, $container->get('cache.graphql.apq'));
   }
 
   /**
@@ -65,11 +50,6 @@ class AutomaticPersistedQuery extends PersistedQueryPluginBase implements Contai
     if ($query = $this->cache->get($id)) {
       return $query->data;
     }
-    // Preventing page cache for this request. Otherwise, we would need to add
-    // a cache tag to the response and flush it when we add the persisted
-    // query. This is not necessary, because the PersistedQueryNotFound
-    // response is very short-lived.
-    $this->pageCacheKillSwitch->trigger();
     throw new RequestError('PersistedQueryNotFound');
   }
 
