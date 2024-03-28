@@ -12,6 +12,7 @@ use Drupal\user\Entity\Role;
  * Tests the automatic persisted query plugin with page cache.
  *
  * @group graphql
+ * @group graphql_persisted_queries
  */
 class AutomaticPersistedQueriesWithPageCacheTest extends GraphQLFunctionalTestBase {
 

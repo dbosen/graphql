@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
  * Tests the automatic persisted query plugin.
  *
  * @group graphql
+ * @group graphql_persisted_queries
  */
 class AutomaticPersistedQueriesTest extends GraphQLTestBase {
 
