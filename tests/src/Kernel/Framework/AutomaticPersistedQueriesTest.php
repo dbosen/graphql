@@ -50,9 +50,21 @@ class AutomaticPersistedQueriesTest extends GraphQLTestBase {
       }
 GQL;
     $this->setUpSchema($schema);
+    $this->mockResolver('Query', 'field_one', 'this is the field one');
+    $this->mockResolver('Query', 'node',
+      $this->builder->produce('entity_load')
+        ->map('type', $this->builder->fromValue('node'))
+        ->map('id', $this->builder->fromArgument('id'))
+    );
+
+    $this->mockResolver('Node', 'title',
+      $this->builder->produce('entity_label')
+        ->map('entity', $this->builder->fromParent())
+    );
 
     /** @var \Drupal\graphql\Plugin\DataProducerPluginManager $manager */
     $manager = $this->container->get('plugin.manager.graphql.persisted_query');
+
     $this->pluginApq = $manager->createInstance('automatic_persisted_query');
 
     // Before adding the persisted query plugins to the server, we want to make
@@ -66,8 +78,6 @@ GQL;
    * Test the automatic persisted queries plugin.
    */
   public function testAutomaticPersistedQueries(): void {
-    $this->mockResolver('Query', 'field_one', 'this is the field one');
-
     $endpoint = $this->server->get('endpoint');
 
     $query = 'query { field_one } ';
@@ -123,6 +133,8 @@ GQL;
    * added to the dynamic page cache entries.
    */
   public function testPageCacheWithDifferentVariables(): void {
+    $endpoint = $this->server->get('endpoint');
+
     NodeType::create([
       'type' => 'test',
       'name' => 'Test',
@@ -141,19 +153,6 @@ GQL;
       'type' => 'test',
     ]);
     $node->save();
-
-    $this->mockResolver('Query', 'node',
-      $this->builder->produce('entity_load')
-        ->map('type', $this->builder->fromValue('node'))
-        ->map('id', $this->builder->fromArgument('id'))
-    );
-
-    $this->mockResolver('Node', 'title',
-      $this->builder->produce('entity_label')
-        ->map('entity', $this->builder->fromParent())
-    );
-
-    $endpoint = $this->server->get('endpoint');
 
     // Post query to endpoint to get the result and cache it.
     $query = 'query($id: String!) { node(id: $id) { title } }';
