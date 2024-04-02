@@ -106,6 +106,7 @@ GQL;
 
     $titleQuery = 'query($id: String!) { node(id: $id) { title } }';
     $idQuery = 'query($id: String!) { node(id: $id) { id } }';
+
     // Post query to endpoint to register the query hashes.
     $parameters['extensions']['persistedQuery']['sha256Hash'] = hash('sha256', $titleQuery);
     $parameters['variables'] = '{"id": "2"}';
@@ -137,7 +138,7 @@ GQL;
     $this->assertSame(200, $result->getStatusCode());
     $this->assertSame(['data' => ['node' => ['id' => 2]]], json_decode($result->getContent(), TRUE));
 
-    // Execute apq call with same parameters, but different query
+    // Execute apq call with same parameters, but different query.
     $parameters['extensions']['persistedQuery']['sha256Hash'] = hash('sha256', $titleQuery);
     $parameters['variables'] = '{"id": "2"}';
     $request = Request::create($endpoint, 'GET', $parameters);

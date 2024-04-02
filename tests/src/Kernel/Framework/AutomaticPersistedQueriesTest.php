@@ -16,7 +16,7 @@ class AutomaticPersistedQueriesTest extends GraphQLTestBase {
    * {@inheritdoc}
    */
   protected static $modules = [
-    'page_cache'
+    'page_cache',
   ];
 
   /**
