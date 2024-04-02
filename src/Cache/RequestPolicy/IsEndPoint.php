@@ -6,7 +6,7 @@ use Drupal\Core\PageCache\RequestPolicyInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Contains a request policy that prevents caching of non GraphQL requests.
+ * Contains a request policy that prevents caching of GraphQL requests.
  */
 class IsEndPoint implements RequestPolicyInterface {
 

@@ -83,7 +83,7 @@ services:
     tags:
       - { name: page_cache_request_policy }
 
-  # Deny caching of requests in the dynamic and page cache.
+  # Deny caching of requests in the dynamic page cache.
   graphql.request_policy.deny_query_to_endpoint:
     public: false
     class: Drupal\graphql\Cache\RequestPolicy\IsEndPoint

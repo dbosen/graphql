@@ -31,8 +31,7 @@ class AutomaticPersistedQueriesTest extends GraphQLTestBase {
    */
   protected function setUp(): void {
     parent::setUp();
-    $this->configureCachePolicy(900);
-
+    $this->configureCachePolicy();
     $schema = <<<GQL
       schema {
         query: Query
