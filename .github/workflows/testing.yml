@@ -96,7 +96,6 @@ jobs:
 
       - name: Run PHPUnit
         run: |
-          php -S 127.0.0.1:8080 >/dev/null 2>&1 &
           cp modules/graphql/phpunit.xml.dist core/phpunit.xml
           ./vendor/bin/phpunit --configuration core/phpunit.xml modules/graphql
         env:
