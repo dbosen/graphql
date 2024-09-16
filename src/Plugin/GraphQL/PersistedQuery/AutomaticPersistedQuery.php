@@ -3,6 +3,7 @@
 namespace Drupal\graphql\Plugin\GraphQL\PersistedQuery;
 
 use Drupal\Core\Cache\CacheBackendInterface;
+use Drupal\Core\PageCache\ResponsePolicy\KillSwitch;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\graphql\PersistedQuery\PersistedQueryPluginBase;
 use GraphQL\Server\OperationParams;
@@ -28,19 +29,33 @@ class AutomaticPersistedQuery extends PersistedQueryPluginBase implements Contai
   protected $cache;
 
   /**
+   * Page cache kill switch.
+   *
+   * @var \Drupal\Core\PageCache\ResponsePolicy\KillSwitch
+   */
+  protected KillSwitch $pageCacheKillSwitch;
+
+  /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, CacheBackendInterface $cache) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, CacheBackendInterface $cache, KillSwitch $pageCacheKillSwitch) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     $this->cache = $cache;
+    $this->pageCacheKillSwitch = $pageCacheKillSwitch;
   }
 
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static($configuration, $plugin_id, $plugin_definition, $container->get('cache.graphql.apq'));
+    return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container->get('cache.graphql.apq'),
+      $container->get('page_cache_kill_switch')
+    );
   }
 
   /**
@@ -50,6 +65,7 @@ class AutomaticPersistedQuery extends PersistedQueryPluginBase implements Contai
     if ($query = $this->cache->get($id)) {
       return $query->data;
     }
+    $this->pageCacheKillSwitch->trigger();
     throw new RequestError('PersistedQueryNotFound');
   }
 
